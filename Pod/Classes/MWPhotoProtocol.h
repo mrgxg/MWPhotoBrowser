@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <SDWebIMage/FLAnimatedImageView+WebCache.h>
 
 // Notifications
 #define MWPHOTO_LOADING_DID_END_NOTIFICATION @"MWPHOTO_LOADING_DID_END_NOTIFICATION"
@@ -32,6 +33,7 @@
 // methods returns nil.
 @property (nonatomic, strong) UIImage *underlyingImage;
 
+
 // Called when the browser has determined the underlying images is not
 // already loaded into memory but needs it.
 - (void)loadUnderlyingImageAndNotify;
@@ -53,6 +55,8 @@
 - (void)unloadUnderlyingImage;
 
 @optional
+
+@property (nonatomic, strong ) FLAnimatedImage *mw_animatedImage;
 
 // If photo is empty, in which case, don't show loading error icons
 @property (nonatomic) BOOL emptyImage;

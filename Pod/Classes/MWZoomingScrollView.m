@@ -13,13 +13,12 @@
 #import "MWPhoto.h"
 #import "MWPhotoBrowserPrivate.h"
 #import "UIImage+MWPhotoBrowser.h"
+#import <SDWebIMage/FLAnimatedImageView+WebCache.h>
 
 // Private methods and properties
 @interface MWZoomingScrollView () {
     
     MWPhotoBrowser __weak *_photoBrowser;
-	MWTapDetectingView *_tapView; // for background taps
-	MWTapDetectingImageView *_photoImageView;
 	DACircularProgressView *_loadingIndicator;
     UIImageView *_loadingError;
     
@@ -133,20 +132,31 @@
 		self.contentSize = CGSizeMake(0, 0);
 		
 		// Get image from browser as it handles ordering of fetching
-		UIImage *img = [_photoBrowser imageForPhoto:_photo];
+		id img = [_photoBrowser imageForPhoto:_photo];
 		if (img) {
 			
 			// Hide indicator
 			[self hideLoadingIndicator];
-			
+            
+            
+            // Setup photo frame
+            CGRect photoImageViewFrame;
+            photoImageViewFrame.origin = CGPointZero;
+            
 			// Set image
-			_photoImageView.image = img;
+            if ([img isKindOfClass:[FLAnimatedImage class]]) {
+                _photoImageView.animatedImage = img;
+                FLAnimatedImage *iamge = (FLAnimatedImage *)img;
+                photoImageViewFrame.size = iamge.size;
+            }else{
+                _photoImageView.image = img;
+                UIImage *iamge = (UIImage *)img;
+                photoImageViewFrame.size = iamge.size;
+            }
 			_photoImageView.hidden = NO;
 			
-			// Setup photo frame
-			CGRect photoImageViewFrame;
-			photoImageViewFrame.origin = CGPointZero;
-			photoImageViewFrame.size = img.size;
+			
+			
 			_photoImageView.frame = photoImageViewFrame;
 			self.contentSize = photoImageViewFrame.size;
 

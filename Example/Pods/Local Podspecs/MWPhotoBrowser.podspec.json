@@ -22,7 +22,7 @@
     "tag": "2.1.2"
   },
   "platforms": {
-    "ios": "7.0"
+    "ios": "9.0"
   },
   "source_files": "Pod/Classes/**/*",
   "resource_bundles": {
@@ -40,14 +40,16 @@
   "weak_frameworks": "Photos",
   "dependencies": {
     "MBProgressHUD": [
-      "~> 0.9"
+
     ],
     "DACircularProgress": [
-      "~> 2.3"
+
     ],
     "SDWebImage": [
-      "~> 3.7",
-      "!= 3.7.2"
+
+    ],
+    "SDWebImage/GIF": [
+
     ]
   }
 }

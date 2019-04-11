@@ -6,12 +6,18 @@
 //  Copyright 2010 d3i. All rights reserved.
 //
 
-#import <SDWebImage/SDWebImageDecoder.h>
 #import <SDWebImage/SDWebImageManager.h>
 #import <SDWebImage/SDWebImageOperation.h>
+//#import "UIView+WebCacheOperation.h"
+//#import "UIView+WebCache.h"
+//#import "NSData+ImageContentType.h"
+//#import "UIImageView+WebCache.h"
+//#import "UIImage+MemoryCacheCost.h"
+#import <SDWebImage/UIImage+MultiFormat.h>
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "MWPhoto.h"
 #import "MWPhotoBrowser.h"
+
 
 @interface MWPhoto () {
 
@@ -34,6 +40,7 @@
 @implementation MWPhoto
 
 @synthesize underlyingImage = _underlyingImage; // synth property from protocol
+@synthesize mw_animatedImage = _mw_animatedImage;
 
 #pragma mark - Class Methods
 
@@ -145,6 +152,10 @@
     return _underlyingImage;
 }
 
+- (FLAnimatedImage *)mw_animatedImage{
+    return _mw_animatedImage;
+}
+
 - (void)loadUnderlyingImageAndNotify {
     NSAssert([[NSThread currentThread] isMainThread], @"This method must be called on the main thread.");
     if (_loadingInProgress) return;
@@ -211,28 +222,52 @@
 // Load from local file
 - (void)_performLoadUnderlyingImageAndNotifyWithWebURL:(NSURL *)url {
     @try {
-        SDWebImageManager *manager = [SDWebImageManager sharedManager];
-        _webImageOperation = [manager downloadImageWithURL:url
-                                                   options:0
-                                                  progress:^(NSInteger receivedSize, NSInteger expectedSize) {
-                                                      if (expectedSize > 0) {
-                                                          float progress = receivedSize / (float)expectedSize;
-                                                          NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                                [NSNumber numberWithFloat:progress], @"progress",
-                                                                                self, @"photo", nil];
-                                                          [[NSNotificationCenter defaultCenter] postNotificationName:MWPHOTO_PROGRESS_NOTIFICATION object:dict];
-                                                      }
-                                                  }
-                                                 completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-                                                     if (error) {
-                                                         MWLog(@"SDWebImage failed to download image: %@", error);
-                                                     }
-                                                     _webImageOperation = nil;
-                                                     self.underlyingImage = image;
-                                                     dispatch_async(dispatch_get_main_queue(), ^{
-                                                         [self imageLoadingComplete];
-                                                     });
-                                                 }];
+        [[[SDWebImageManager sharedManager] imageDownloader] downloadImageWithURL:url options:SDWebImageDownloaderUseNSURLCache progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
+            if (expectedSize > 0) {
+                float progress = receivedSize / (float)expectedSize;
+                NSDictionary* dict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                      [NSNumber numberWithFloat:progress], @"progress",
+                                      self, @"photo", nil];
+                [[NSNotificationCenter defaultCenter] postNotificationName:MWPHOTO_PROGRESS_NOTIFICATION object:dict];
+            }
+        } completed:^(UIImage * _Nullable image, NSData * _Nullable imageData, NSError * _Nullable error, BOOL finished) {
+            if (error) {
+                MWLog(@"SDWebImage failed to download image: %@", error);
+            }
+            _webImageOperation = nil;
+            
+            // Step 1. Check memory cache (associate object)
+            FLAnimatedImage *associatedAnimatedImage = image.sd_FLAnimatedImage;
+            if (associatedAnimatedImage) {
+                // Asscociated animated image exist
+                // FLAnimatedImage framework contains a bug that cause GIF been rotated if previous rendered image orientation is not Up. We have to call `setImage:` with non-nil image to reset the state. See `https://github.com/SDWebImage/SDWebImage/issues/2402`
+                self.underlyingImage = associatedAnimatedImage.posterImage;
+                self.mw_animatedImage = associatedAnimatedImage;
+                return;
+            }
+            // Step 2. Check if original compressed image data is "GIF"
+            BOOL isGIF = (image.sd_imageFormat == SDImageFormatGIF || [NSData sd_imageFormatForImageData:imageData] == SDImageFormatGIF);
+            // Check if placeholder, which does not trigger a backup disk cache query
+//            BOOL isPlaceholder = !imageData && image && cacheType == SDImageCacheTypeNone;
+            if (!isGIF) {
+                self.underlyingImage = image;
+                self.mw_animatedImage = nil;
+            }else{
+                    // Step 3. Check if data exist or query disk cache
+                NSString *key = [[SDWebImageManager sharedManager] cacheKeyForURL:url];
+                __block NSData *gifData = imageData;
+                if (!gifData) {
+                    gifData = [[SDImageCache sharedImageCache] diskImageDataForKey:key];
+                }
+                
+                FLAnimatedImage *animatedImage = [[FLAnimatedImage alloc] initWithAnimatedGIFData:gifData];
+                self.underlyingImage = animatedImage.posterImage;
+                self.mw_animatedImage = animatedImage;
+            }
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self imageLoadingComplete];
+            });
+        }];
     } @catch (NSException *e) {
         MWLog(@"Photo from web: %@", e);
         _webImageOperation = nil;
