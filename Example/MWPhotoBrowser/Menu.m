@@ -1237,6 +1237,26 @@
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
+- (void)photoBrowser:(MWPhotoBrowser *)photoBrowser didLongPressPhoto:(UIImageView *)imageView{
+    
+    NSLog(@"%s",__func__);
+    
+//    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+//    UIAlertAction *alertAction = [UIAlertAction actionWithTitle:@"保存图片" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+//        
+//    }];
+//    
+//    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+//        
+//    }];
+//    [alertController addAction:alertAction];
+//    [alertController addAction:cancelAction];
+//    
+//    [self presentViewController:alertController animated:YES completion:^{
+//        
+//    }];
+}
+
 #pragma mark - Load Assets
 
 - (void)loadAssets {

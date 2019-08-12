@@ -27,6 +27,10 @@
 - (id)initWithImage:(UIImage *)image highlightedImage:(UIImage *)highlightedImage {
 	if ((self = [super initWithImage:image highlightedImage:highlightedImage])) {
 		self.userInteractionEnabled = YES;
+//
+//        UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPress:)];
+//
+//        [self addGestureRecognizer:longPress];
 	}
 	return self;
 }
@@ -34,19 +38,24 @@
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
 	UITouch *touch = [touches anyObject];
 	NSUInteger tapCount = touch.tapCount;
-	switch (tapCount) {
-		case 1:
-			[self handleSingleTap:touch];
-			break;
-		case 2:
-			[self handleDoubleTap:touch];
-			break;
-		case 3:
-			[self handleTripleTap:touch];
-			break;
-		default:
-			break;
-	}
+    if (0 == tapCount) {
+        //长按
+        [self longPress:touch];
+    }else{
+        switch (tapCount) {
+            case 1:
+                [self handleSingleTap:touch];
+                break;
+            case 2:
+                [self handleDoubleTap:touch];
+                break;
+            case 3:
+                [self handleTripleTap:touch];
+                break;
+            default:
+                break;
+        }
+    }
 	[[self nextResponder] touchesEnded:touches withEvent:event];
 }
 
@@ -63,6 +72,13 @@
 - (void)handleTripleTap:(UITouch *)touch {
 	if ([_tapDelegate respondsToSelector:@selector(imageView:tripleTapDetected:)])
 		[_tapDelegate imageView:self tripleTapDetected:touch];
+}
+
+
+- (void)longPress:(UITouch *)touch{
+    if ([_tapDelegate respondsToSelector:@selector(imageView:longPress:)]) {
+        [_tapDelegate imageView:self longPress:touch];
+    }
 }
 
 @end

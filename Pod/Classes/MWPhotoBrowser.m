@@ -1600,7 +1600,10 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
                 [items addObject:photo.caption];
             }
             self.activityViewController = [[UIActivityViewController alloc] initWithActivityItems:items applicationActivities:nil];
-            
+            self.activityViewController.excludedActivityTypes = @[UIActivityTypeMail,
+                                                                  UIActivityTypeAddToReadingList,
+                                                                  UIActivityTypeAssignToContact,
+                                                                  UIActivityTypePrint];
             // Show loading spinner after a couple of seconds
             double delayInSeconds = 2.0;
             dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));

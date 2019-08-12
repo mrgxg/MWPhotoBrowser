@@ -37,6 +37,8 @@
 - (void)photoBrowserDidFinishModalPresentation:(MWPhotoBrowser *)photoBrowser;
 - (void)showActivityViewController:(id)items;
 
+- (void)photoBrowser:(MWPhotoBrowser *)photoBrowser didLongPressPhoto:(UIImageView *)imageView;
+
 @end
 
 @interface MWPhotoBrowser : UIViewController <UIScrollViewDelegate, UIActionSheetDelegate>

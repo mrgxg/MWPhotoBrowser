@@ -391,6 +391,13 @@
 	[_photoBrowser performSelector:@selector(toggleControls) withObject:nil afterDelay:0.2];
 }
 
+- (void)handleLongPress:(UIImageView *)imageView{
+    if ([self->_photoBrowser.delegate respondsToSelector:@selector(photoBrowser:didLongPressPhoto:)]) {
+        [self->_photoBrowser.delegate photoBrowser:self->_photoBrowser didLongPressPhoto:imageView];
+    }
+}
+
+
 - (void)handleDoubleTap:(CGPoint)touchPoint {
     
     // Dont double tap to zoom if showing a video
@@ -428,6 +435,11 @@
 }
 - (void)imageView:(UIImageView *)imageView doubleTapDetected:(UITouch *)touch {
     [self handleDoubleTap:[touch locationInView:imageView]];
+}
+
+- (void)imageView:(UIImageView *)imageView longPress:(UITouch *)longPress{
+    //
+    [self handleLongPress:imageView];
 }
 
 // Background View
