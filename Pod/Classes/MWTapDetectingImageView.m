@@ -35,13 +35,23 @@
 	return self;
 }
 
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
+    [super touchesBegan:touches withEvent:event];
+    
+    UITouch *touch = [touches anyObject];
+    [self performSelector:@selector(longPress:) withObject:touch afterDelay:0.5];
+}
+
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
 	UITouch *touch = [touches anyObject];
 	NSUInteger tapCount = touch.tapCount;
-    if (0 == tapCount) {
-        //长按
-        [self longPress:touch];
-    }else{
+//    if (0 == tapCount) {
+//        //长按
+//        [self longPress:touch];
+//    }else{
+    
+        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(longPress:) object:touch];
+    
         switch (tapCount) {
             case 1:
                 [self handleSingleTap:touch];
@@ -55,7 +65,7 @@
             default:
                 break;
         }
-    }
+//    }
 	[[self nextResponder] touchesEnded:touches withEvent:event];
 }
 
